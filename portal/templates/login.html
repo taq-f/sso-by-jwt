@@ -6,9 +6,8 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>ポータル</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
-  <link rel="stylesheet" type="text/css" href="static/main.css">
+  <link rel="stylesheet" type="text/css" href="static/common.css">
+  <link rel="stylesheet" type="text/css" href="static/login.css">
 </head>
 
 <body>
@@ -21,10 +20,10 @@
     <div class="row" style="padding-top: 10px;">
       <div class="col s4">
         <p class="exp-text">
-          アカウントを持っていない？あなたの代わりにデモ用アカウントを用意しておきました！
+          アカウントを持っていない？
         </p>
         <p class="exp-text">
-          どれでもお好きなアカウントをお使いください。
+          あなたの代わりにデモ用アカウントを用意しておきました！
         </p>
       </div>
       <div class="col s8">
@@ -38,11 +37,11 @@
           </thead>
           <tbody>
             <tr v-for="user in users">
-              <td>{{ user.loginid }}</td>
-              <td>{{ user.password }}</td>
+              <td>[[ user.loginid ]]</td>
+              <td>[[ user.password ]]</td>
               <td>
                 <ul class="apps">
-                  <li class="app" v-for="app in user.apps">{{ app }}</li>
+                  <li class="app" v-for="app in user.apps">[[ app ]]</li>
                 </ul>
               </td>
             </tr>
@@ -70,13 +69,10 @@
       </form>
     </div>
     <div class="error center">
-      (( message ))
+      {{ message }}
     </div>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-    crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script>
     fetch('api/users')
@@ -84,6 +80,7 @@
       .then(users => {
         new Vue({
           el: '#user-list',
+          delimiters: ["[[", "]]"],
           data: { users }
         });
       });

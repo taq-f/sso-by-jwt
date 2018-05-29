@@ -6,102 +6,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>ポータル</title>
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
-  <link rel="stylesheet" type="text/css" href="static/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
+  <link rel="stylesheet" type="text/css" href="static/common.css">
+  <link rel="stylesheet" type="text/css" href="static/menu.css">
 </head>
 
 <body>
-  <div class="row center">
-    <h1>おめでとうございます</h1>
+  <div class="content">
+    <h1 class="title">おめでとうございます</h1>
+    <p>
+      あなたにはトークン「
+      <span title="{{token}}">{{token[:15]}}...</span>」が発行されました。
+    </p>
+    <p>
+      このトークンにはあなたのログインIDや利用可能なアプリケーションなどの情報が含まれています。つまり、トークンを提示されたウェブアプリケーションは、このポータルに問い合わせることなく
+      <ul>
+        <li>{{loginId}}として認証されている</li>
+        <li>利用可能なアプリケーションは{{'と'.join(apps)}}である</li>
+        <li>トークンには署名がついていて、改ざんされていない</li>
+      </ul>
+      ことが分かります。
+    </p>
   </div>
-  <div class="row">
-    <div class="col s3">
+
+  {% for app in all_apps %}
+  <div class="card">
+    <div class="card-image">
+      <figure class="image is-4by3">
+        <img src="{{ app['logourl'] }}">
+      </figure>
     </div>
-    <div class="col s6">
-      <p>
-        正しいログインIDとパスワードを入力したことにより、あなたにはトークン「
-        <span title="{{token}}">{{token[:15]}}...</span>」が発行されました。
-      </p>
-      <p>
-        このトークンには、それ自体にあなたがログインに使用したログインIDや利用可能なアプリケーションなどの情報が含まれています。 つまり、トークンを提示されたウェブアプリケーションは、このポータルに問い合わせることなく「ポータルに{{loginId}}として認証されている」「利用可能なアプリケーションは{{'と'.join(apps)}}である」ことを知ります。トークンには署名がついており、改ざんはたちまち発覚するでしょう。
-      </p>
-      <p>
-        さあ、下のリンクはあなたをトークンとともアプリケーションページに連れて行きます！
-      </p>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col s2">
-    </div>
-    <div class="col s4">
-      <div class="card menu-panel {{'disabled' if app[0]['id'] not in apps}}" data-url="{{app[0]['url']}}">
-        <div class="tooltip">
-          どうやらあなたにはこのアプリは閲覧できないようです。
-          <br> しかし人生とはチャレンジの連続です。
-          <br> 試しにクリックしてみましょう！
-        </div>
-        <div class="card-image">
-          <img src="{{app[0]['url']}}/static/app.jpg">
-        </div>
-        <div class="card-content">
-          <span class="card-title grey-text text-darken-2">
-            {{app[0]['id']}}
-          </span>
-          <p>
-            蛙（かえる）とは、脊椎動物亜門・両生綱・無尾目（カエル目）に分類される動物の総称。古称としてかわず（旧かな表記では「かはづ」）などがある。
-          </p>
+    <div class="card-content">
+      <div class="media">
+        <div class="media-content">
+          <h4 class="subtitle is-4">{{ app['id'] }}</h4>
         </div>
       </div>
-    </div>
-
-    <div class="col s4">
-      <div class="card menu-panel {{'disabled' if app[1]['id'] not in apps}}" data-url="{{app[1]['url']}}">
-        <div class="tooltip">
-          どうやらあなたにはこのアプリは閲覧できないようです。
-          <br> しかし人生とはチャレンジの連続です。
-          <br> 試しにクリックしてみましょう！
-        </div>
-        <div class="card-image">
-          <img src="{{app[1]['url']}}/static/app.jpg">
-        </div>
-        <div class="card-content">
-          <span class="card-title grey-text text-darken-2 menu-panel">
-            {{app[1]['id']}}
-          </span>
-          <p>
-            マレーバク（馬来獏）は、哺乳綱ウマ目（奇蹄目）バク科バク属に分類される奇蹄類。タイの山岳民族の間では神が余りものを繋ぎ合わせて創造した動物とされた。
-          </p>
-        </div>
+      <div class="content">
+        {{ app['caption'] }}
       </div>
     </div>
-
-    <div class="col s2">
-    </div>
   </div>
+  {% endfor %}
 
   <form name="toMenuFrom" method="post" target="_blank" hidden>
-    <input type="hidden" name="token">
+    <input type="hidden" name="token" value="{{ token }}">
   </form>
 
-  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-    crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script>
-    function setToken(token) {
-      $("#token").text(token);
-      document.forms.toMenuFrom.token.value = token;
+    for (elem of document.getElementsByClassName('menu-panel')) {
+      elem.addEventListener('click', e => {
+        const form = document.forms.toMenuFrom;
+        form.action = e.currentTarget.getAttribute('url');
+        form.submit();
+      });
     }
-
-    $(".menu-panel").on("click", e => {
-      const form = document.forms.toMenuFrom;
-      form.action = $(e.currentTarget).data('url');
-      form.submit();
-    });
   </script>
-
-
-
 </body>
 
 </html>

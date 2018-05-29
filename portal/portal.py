@@ -20,27 +20,15 @@ from flask import (Flask, jsonify, make_response, render_template, request, redi
                    session)
 
 
-class CustomFlask(Flask):
-    jinja_options = Flask.jinja_options.copy()
-    jinja_options.update(dict(
-        block_start_string='(%',
-        block_end_string='%)',
-        variable_start_string='((',
-        variable_end_string='))',
-        comment_start_string='(#',
-        comment_end_string='#)',
-    ))
-
-
-App = namedtuple('App', ('id', 'url'))
+App = namedtuple('App', ('id', 'url', 'logourl', 'caption'))
 
 
 User = namedtuple('User', ('loginid', 'password', 'apps'))
 
 
 APPS = [
-    App('app1', 'http://localhost:5001'),
-    App('app2', 'http://localhost:5002'),
+    App('app1', 'http://localhost:5001', 'http://localhost:5001/static/app.jpg', '蛙（かえる）とは、脊椎動物亜門・両生綱・無尾目（カエル目）に分類される動物の総称。古称としてかわず（旧かな表記では「かはづ」）などがある。'),
+    App('app2', 'http://localhost:5002', 'http://localhost:5001/static/app.jpg', 'マレーバク（馬来獏）は、哺乳綱ウマ目（奇蹄目）バク科バク属に分類される奇蹄類。タイの山岳民族の間では神が余りものを繋ぎ合わせて創造した動物とされた。'),
 ]
 
 
@@ -82,14 +70,6 @@ def create_token(user):
     encoded = jwt.encode(payload, JWT_SECRET, algorithm='HS256')
 
     return encoded.decode('utf-8')
-
-
-def find_user(loginid):
-    """ログインIDからユーザーを検索する"""
-    for u in USERS:
-        if loginid == u.loginid:
-            return u
-    return None
 
 
 def is_valid_credential(loginid, password):
@@ -165,7 +145,7 @@ def skip_session_check(func):
 # Initialize Application
 # ******************************************************************************
 
-app = CustomFlask(__name__)
+app = Flask(__name__)
 app.config['IGNORE_SESSION_CHECK'] = ['static']
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SECRET_KEY'] = get_secret_key(app)
@@ -256,7 +236,7 @@ def show_login_page():
 
 @app.route('/login', methods=['POST'])
 @skip_session_check
-def do_login():
+def login():
     """ログインPOST処理"""
     loginid = request.form.get('loginid')
     password = request.form.get('password')
@@ -282,15 +262,20 @@ def menu():
     """Handler for menu page"""
     token = read_token()
     param = parse_token()
-    return render_template('menu.html', token=token, app=APPS, **param)
+    return render_template('menu.html', token=token, all_apps=[{'id': x.id, 'url': x.url, 'logourl': x.logourl, 'caption': x.caption} for x in APPS], **param)
 
 
-@app.errorhandler(Exception)
-def handle_error(error):
-    """Error handler when a routed function raises unhandled error"""
-    import traceback
-    print(traceback.format_exc())
-    return 'Internal Server Error', 500
+# ******************************************************************************
+# その他、デモにそれほど関係ないもの
+# ******************************************************************************
+
+
+def find_user(loginid):
+    """ログインIDからユーザーを検索する"""
+    for u in USERS:
+        if loginid == u.loginid:
+            return u
+    return None
 
 
 @app.route('/api/users', methods=['GET'])
@@ -303,5 +288,13 @@ def get_users():
     )
 
 
+@app.errorhandler(Exception)
+def handle_error(error):
+    """Error handler when a routed function raises unhandled error"""
+    import traceback
+    print(traceback.format_exc())
+    return 'Internal Server Error', 500
+
+
 if __name__ == '__main__':
-    app.run(host='localhost', port=5000)
+    app.run(host='localhost', port=5000, debug=True)
