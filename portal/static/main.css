@@ -1,0 +1,81 @@
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    color: rgb(0, 0, 0, .87);
+    font-family: 'Helvetica Neue', Helvetica, Roboto, 'Droid Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+
+    background-size: cover;
+    background-position: center;
+    background-image: url('mt.jpg');
+    background-attachment: fixed;
+}
+
+.container {
+    position: absolute;
+    right: 0;
+    padding: 30px 30px 30px 30px;
+    width: 750px;
+    background-color: #fff;
+    height: 100vh;
+    overflow: auto;
+    opacity: 0.85;
+}
+
+.panel {
+    /* border: 2px solid #CFD8DC; */
+    padding: 10px 30px;
+    border-radius: 5px;
+}
+
+.center {
+    text-align: center;
+}
+
+.error {
+    color: #FF5722;
+}
+
+.material-icons {
+    color: #555;
+}
+
+th, td {
+    text-align: center;
+}
+
+.exp-text {
+    color: #3F51B5;
+    font-size: 12px;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.card {
+    cursor: pointer;
+}
+
+.card.disabled {
+    opacity: 0.6;
+}
+
+.tooltip {
+    display: none;
+}
+
+.card.disabled .tooltip {
+    display: block;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 9999;
+    padding: 10px;
+    color: #FFFFFF;
+    background: #E91E63;
+    font-size: 12px;
+    opacity: 0.9;
+}

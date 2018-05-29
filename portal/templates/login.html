@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>ポータル</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+  <link rel="stylesheet" type="text/css" href="static/main.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="center">ようこそ</h1>
+    <p class="center">
+      JWTを用いた簡易的なシングル・サインオンのデモサイトです
+    </p>
+
+    <div class="row" style="padding-top: 10px;">
+      <div class="col s4">
+        <p class="exp-text">
+          アカウントを持っていない？あなたの代わりにデモ用アカウントを用意しておきました！
+        </p>
+        <p class="exp-text">
+          どれでもお好きなアカウントをお使いください。
+        </p>
+      </div>
+      <div class="col s8">
+        <table id="user-list">
+          <thead>
+            <tr>
+              <th>ログインID</th>
+              <th>パスワード</th>
+              <th>利用可能アプリ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="user in users">
+              <td>{{ user.loginid }}</td>
+              <td>{{ user.password }}</td>
+              <td>
+                <ul class="apps">
+                  <li class="app" v-for="app in user.apps">{{ app }}</li>
+                </ul>
+              </td>
+            </tr>
+          </tbody>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel center">
+      <form action="/login" method="post" class="col s12">
+        <div class="row">
+          <div class="input-field col s5">
+            <input placeholder="" id="login-id" name="loginid" type="text" value="" class="validate">
+            <label for="login-id">ログインID</label>
+          </div>
+          <div class="input-field col s4">
+            <input placeholder="" id="password" name="password" type="password" value="" class="validate">
+            <label for="password">パスワード</label>
+          </div>
+          <div class="input-field col s3">
+            <button type="submit" class="btn">ログイン</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="error center">
+      (( message ))
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script>
+    fetch('api/users')
+      .then(r => r.json())
+      .then(users => {
+        new Vue({
+          el: '#user-list',
+          data: { users }
+        });
+      });
+  </script>
+</body>
+
+</html>
