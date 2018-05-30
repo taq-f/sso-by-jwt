@@ -11,49 +11,46 @@ from flask import (Flask, jsonify, make_response, redirect, render_template, req
                    session)
 
 
-APP_NAME = 'App1'
+# JWTの署名に使用されるシークレット
+# このシークレットを知っていればトークンのpayloadが改ざんされていないか確認できる
+JWT_SECRET = '気高く、強く、一筋に'
 
 
-def get_secret_key(app, filename='secret_key'):
-    """Get, or generate if not available, secret key for cookie encryption.
+# 認証サービス + それを使うアプリ2つ以上の構成を取りたいので、
+# デモのアプリケーション情報が環境変数で指定されていない場合は続行不可
+APP_ID = os.getenv("JWT_DEMO_APP_ID")
+PORT = os.getenv("JWT_DEMO_APP_PORT")
 
-    Key will be saved in a file located in the application directory.
-    """
-    filename = os.path.join(app.root_path, filename)
-    try:
-        return open(filename, 'r').read()
-    except IOError:
-        k = ''.join([
-            random.choice(string.punctuation + string.ascii_letters +
-                          string.digits) for i in range(64)
-        ])
-        with open(filename, 'w', encoding='utf-8') as f:
-            f.write(k)
-        return k
+
+# 認証を行う必要のあるWebアプリケーションのURL
+AUTH_APP_URL = 'http://localhost:5000'
 
 
 def parse_token():
-    """"""
-    def decode(token):
-        if not token:
-            return None
-        try:
-            return jwt.decode(token.encode('utf-8'),
-                              get_secret_key(app), algorithms=['HS256'])
-        except jwt.exceptions.DecodeError:
-            return None
+    """トークンをパースする"""
+    token = read_token()
+
+    if not token:
         return None
 
-    token = read_token()
-    param = decode(token)
-    if param:
-        return param
+    try:
+        param = jwt.decode(token.encode('utf-8'),
+                           JWT_SECRET, algorithms=['HS256'])
+    except jwt.exceptions.DecodeError:
+        return None
 
-    return None
+    return param
 
 
 def read_token():
-    """"""
+    """トークン読み込み
+
+    以下の順でトークンが渡されているか確認し、最初に見つけたトークンを採用する。
+
+    1. POSTリクエストのフォーム（token）
+    2. Authorizationヘッダ
+    3. Cookie（token）
+    """
     token = request.form.get('token')
     if token:
         return token
@@ -68,11 +65,6 @@ def read_token():
         return token
 
     return None
-
-
-def remote_addr():
-    """Workaround for retriving client ip address when reverse proxy in the middle"""
-    return request.access_route[-1]
 
 
 # ******************************************************************************
@@ -98,7 +90,6 @@ def skip_session_check(func):
 app = Flask(__name__)
 app.config['IGNORE_SESSION_CHECK'] = ['static']
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.config['SECRET_KEY'] = get_secret_key(app)
 
 # ******************************************************************************
 # Web
@@ -110,20 +101,19 @@ app.config['SECRET_KEY'] = get_secret_key(app)
 
 
 @app.before_request
-def check_token():
-    """Inspect session.
-
-    Return 401 if session has not establised yet.
-    If the endpoint (function) is in skip session list, does nothing.
-    """
+def validate_token():
+    """認証が必要なページ/apiにアクセスした際のトークンチェック"""
     if request.endpoint in app.config['IGNORE_SESSION_CHECK']:
         return
 
     param = parse_token()
     if not param:
-        return redirect('http://localhost:5000')
+        # トークンが見つからない場合、認証を行うべきサービスに丸投げ
+        return redirect(AUTH_APP_URL)
 
-    if APP_NAME not in param.get('apps'):
+    # トークンを持っていたとしてもこのアプリケーションへのアクセスがあるかを
+    # 確認しなければならない
+    if APP_ID not in param.get('apps'):
         return redirect('/unauthorized')
 
     return
@@ -135,23 +125,11 @@ def check_token():
 
 
 @app.after_request
-def static_cache(res):
-    """Set response headers about caching for static resources
+def set_token_in_cookie(res):
+    """Cookieへのトークンの保存
 
-    A year later is set in this example as advised here:
-    https://developers.google.com/speed/docs/insights/LeverageBrowserCaching
-
-    It may be better to store the expiration date somewhere else and reuse it
-    since this example calculate the date in every request.
+    一度送られてOKだったトークン情報はCookieに入れてブラウザからのアクセスに対応する。
     """
-    if request.endpoint == 'static':
-        expires = datetime.now() + timedelta(days=365)
-        res.headers['Expires'] = expires.isoformat()
-    return res
-
-
-@app.after_request
-def set_token(res):
     token = read_token()
     if token:
         max_age = 60 * 60 * 24 * 1
@@ -168,11 +146,9 @@ def set_token(res):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    """Handler for index page"""
-    if request.method == 'POST':
-        return redirect('/')
+    """トップページ"""
     param = parse_token()
-    return render_template('index.html', **param)
+    return render_template('index.html', app=APP_ID, **param)
 
 
 @app.route('/unauthorized', methods=['GET', 'POST'])
@@ -181,6 +157,11 @@ def unauthorized():
     """Handler for unauthorized users"""
     param = parse_token()
     return render_template('unauthorized.html', **param)
+
+
+# ******************************************************************************
+# その他、デモにそれほど関係ないもの
+# ******************************************************************************
 
 
 @app.errorhandler(Exception)
@@ -192,4 +173,4 @@ def handle_error(error):
 
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=5001, debug=True)
+    app.run(host='localhost', port=PORT, debug=True)

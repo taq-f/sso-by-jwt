@@ -8,54 +8,65 @@
   <title>ポータル</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
   <link rel="stylesheet" type="text/css" href="static/common.css">
-  <link rel="stylesheet" type="text/css" href="static/menu.css">
 </head>
 
 <body>
-  <div class="content">
-    <h1 class="title">おめでとうございます</h1>
+
+  <div class="wrapper">
+    <h1 class="title">ようこそ</h1>
     <p>
       あなたにはトークン「
-      <span title="{{token}}">{{token[:15]}}...</span>」が発行されました。
+      <span title="{{token}}">{{token[:25]}}...</span>」が発行されました。
     </p>
     <p>
       このトークンにはあなたのログインIDや利用可能なアプリケーションなどの情報が含まれています。つまり、トークンを提示されたウェブアプリケーションは、このポータルに問い合わせることなく
       <ul>
-        <li>{{loginId}}として認証されている</li>
-        <li>利用可能なアプリケーションは{{'と'.join(apps)}}である</li>
-        <li>トークンには署名がついていて、改ざんされていない</li>
+        <li>あなたは
+          <span>{{loginid}}</span>である
+        </li>
+        <li>
+          {{'と'.join(apps)}}が利用できる
+        </li>
       </ul>
       ことが分かります。
     </p>
-  </div>
 
-  {% for app in all_apps %}
-  <div class="card">
-    <div class="card-image">
-      <figure class="image is-4by3">
-        <img src="{{ app['logourl'] }}">
-      </figure>
-    </div>
-    <div class="card-content">
-      <div class="media">
-        <div class="media-content">
-          <h4 class="subtitle is-4">{{ app['id'] }}</h4>
+    <div class="apps">
+      <div class="columns">
+        {% for app in all_apps %}
+        <div class="column">
+          <div class="card app" url="{{ app['url'] }}">
+            <div class="card-image">
+              <figure class="image is-4by3">
+                <img src="{{ app['logourl'] }}">
+              </figure>
+            </div>
+            <div class="card-content">
+              <div class="media">
+                <div class="media-content">
+                  <h4 class="subtitle is-4">{{ app['id'] }}</h4>
+                </div>
+              </div>
+              <div class="content">
+                {{ app['caption'] }}
+              </div>
+              <div class="content">
+                {{ app['url'] }}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="content">
-        {{ app['caption'] }}
+        {% endfor %}
       </div>
     </div>
   </div>
-  {% endfor %}
 
   <form name="toMenuFrom" method="post" target="_blank" hidden>
     <input type="hidden" name="token" value="{{ token }}">
   </form>
 
-  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script>
-    for (elem of document.getElementsByClassName('menu-panel')) {
+    for (elem of document.getElementsByClassName('app')) {
       elem.addEventListener('click', e => {
         const form = document.forms.toMenuFrom;
         form.action = e.currentTarget.getAttribute('url');

@@ -20,6 +20,9 @@ from flask import (Flask, jsonify, make_response, render_template, request, redi
                    session)
 
 
+PORT = os.getenv("JWT_DEMO_APP_PORT")
+
+
 App = namedtuple('App', ('id', 'url', 'logourl', 'caption'))
 
 
@@ -27,49 +30,23 @@ User = namedtuple('User', ('loginid', 'password', 'apps'))
 
 
 APPS = [
-    App('app1', 'http://localhost:5001', 'http://localhost:5001/static/app.jpg', '蛙（かえる）とは、脊椎動物亜門・両生綱・無尾目（カエル目）に分類される動物の総称。古称としてかわず（旧かな表記では「かはづ」）などがある。'),
-    App('app2', 'http://localhost:5002', 'http://localhost:5001/static/app.jpg', 'マレーバク（馬来獏）は、哺乳綱ウマ目（奇蹄目）バク科バク属に分類される奇蹄類。タイの山岳民族の間では神が余りものを繋ぎ合わせて創造した動物とされた。'),
+    App('frog', 'http://app1:5001', 'http://app1:5001/static/frog.jpg',
+        '蛙（かえる）とは、脊椎動物亜門・両生綱・無尾目（カエル目）に分類される動物の総称。古称としてかわず（旧かな表記では「かはづ」）などがある。'),
+    App('tapir', 'http://app2:5002', 'http://app2:5002/static/tapir.jpg',
+        'マレーバク（馬来獏）は、哺乳綱ウマ目（奇蹄目）バク科バク属に分類される奇蹄類。タイの山岳民族の間では神が余りものを繋ぎ合わせて創造した動物とされた。'),
 ]
 
 
 USERS = [
-    User('user1', 'user1pwd', ['app1', 'app2']),
-    User('user2', 'user2pwd', ['app1']),
-    User('user3', 'user3pwd', ['app2']),
+    User('user1', 'user1pwd', ['frog', 'tapir']),
+    User('user2', 'user2pwd', ['frog']),
+    User('user3', 'user3pwd', ['tapir']),
 ]
 
 
-JWT_SECRET = 'secret'
-
-
-def get_secret_key(app, filename='secret_key'):
-    """Get, or generate if not available, secret key for cookie encryption.
-
-    Key will be saved in a file located in the application directory.
-    """
-    filename = os.path.join(app.root_path, filename)
-    try:
-        return open(filename, 'r').read()
-    except IOError:
-        k = ''.join([
-            random.choice(string.punctuation + string.ascii_letters +
-                          string.digits) for i in range(64)
-        ])
-        with open(filename, 'w', encoding='utf-8') as f:
-            f.write(k)
-        return k
-
-
-def create_token(user):
-    """ログイン情報からトークンを生成する"""
-    payload = {
-        'loginId': user.loginid,
-        'apps': user.apps,
-    }
-
-    encoded = jwt.encode(payload, JWT_SECRET, algorithm='HS256')
-
-    return encoded.decode('utf-8')
+# JWTの署名に使用されるシークレット
+# このシークレットを知っていればトークンのpayloadが改ざんされていないか確認できる
+JWT_SECRET = '気高く、強く、一筋に'
 
 
 def is_valid_credential(loginid, password):
@@ -82,28 +59,48 @@ def is_valid_credential(loginid, password):
     return True
 
 
+# ******************************************************************************
+# トークン関連のユーティリティ
+# ******************************************************************************
+
+
+def create_token(user):
+    """ログイン情報からトークンを生成する"""
+    payload = {
+        'loginid': user.loginid,
+        'apps': user.apps,
+    }
+
+    encoded = jwt.encode(payload, JWT_SECRET, algorithm='HS256')
+
+    return encoded.decode('utf-8')
+
+
 def parse_token():
-    """"""
-    def decode(token):
-        if not token:
-            return None
-        try:
-            return jwt.decode(token.encode('utf-8'),
-                              JWT_SECRET, algorithms=['HS256'])
-        except jwt.exceptions.DecodeError:
-            return None
+    """トークンをパースする"""
+    token = read_token()
+
+    if not token:
         return None
 
-    token = read_token()
-    param = decode(token)
-    if param:
-        return param
+    try:
+        param = jwt.decode(token.encode('utf-8'),
+                           JWT_SECRET, algorithms=['HS256'])
+    except jwt.exceptions.DecodeError:
+        return None
 
-    return None
+    return param
 
 
 def read_token():
-    """"""
+    """トークン読み込み
+
+    以下の順でトークンが渡されているか確認し、最初に見つけたトークンを採用する。
+
+    1. POSTリクエストのフォーム（token）
+    2. Authorizationヘッダ
+    3. Cookie（token）
+    """
     token = request.form.get('token')
     if token:
         return token
@@ -118,11 +115,6 @@ def read_token():
         return token
 
     return None
-
-
-def remote_addr():
-    """Workaround for retriving client ip address when reverse proxy in the middle"""
-    return request.access_route[-1]
 
 
 # ******************************************************************************
@@ -148,11 +140,12 @@ def skip_session_check(func):
 app = Flask(__name__)
 app.config['IGNORE_SESSION_CHECK'] = ['static']
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-app.config['SECRET_KEY'] = get_secret_key(app)
+
 
 # ******************************************************************************
 # Web
 # ******************************************************************************
+
 
 # *************************************
 # Before each requst
@@ -172,7 +165,11 @@ def check_token():
 
 
 @app.after_request
-def set_token(res):
+def set_token_in_cookie(res):
+    """Cookieへのトークンの保存
+
+    一度送られてOKだったトークン情報はCookieに入れてブラウザからのアクセスに対応する。
+    """
     if request.endpoint == 'login':
         return res
     token = read_token()
@@ -297,4 +294,4 @@ def handle_error(error):
 
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=5000, debug=True)
+    app.run(host='localhost', port=PORT, debug=True)
