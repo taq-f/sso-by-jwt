@@ -20,7 +20,7 @@ from flask import (Flask, jsonify, make_response, render_template, request, redi
                    session)
 
 
-PORT = os.getenv("JWT_DEMO_APP_PORT")
+PORT = int(os.getenv("JWT_DEMO_APP_PORT"))
 
 
 App = namedtuple('App', ('id', 'url', 'logourl', 'caption'))
@@ -228,7 +228,8 @@ def api_token():
 @skip_session_check
 def show_login_page():
     """ログインページ"""
-    return render_template('login.html')
+    return render_template('login.html', users=[{'loginid': x.loginid, 'password': x.password, 'apps': x.apps}
+                                                for x in USERS])
 
 
 @app.route('/login', methods=['POST'])
@@ -240,7 +241,8 @@ def login():
 
     if not is_valid_credential(loginid, password):
         message = 'ログインID、またはパスワードが違います。'
-        return render_template('login.html', message=message, loginid=loginid)
+        return render_template('login.html', message=message, users=[{'loginid': x.loginid, 'password': x.password, 'apps': x.apps}
+                                                                     for x in USERS])
 
     user = find_user(loginid)
     token = create_token(user)
@@ -273,16 +275,6 @@ def find_user(loginid):
         if loginid == u.loginid:
             return u
     return None
-
-
-@app.route('/api/users', methods=['GET'])
-@skip_session_check
-def get_users():
-    """ユーザー一覧の取得"""
-    return jsonify(
-        [{'loginid': x.loginid, 'password': x.password, 'apps': x.apps}
-            for x in USERS]
-    )
 
 
 @app.errorhandler(Exception)

@@ -6,85 +6,94 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>ポータル</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" type="text/css" href="static/common.css">
-  <link rel="stylesheet" type="text/css" href="static/login.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
+  <style>
+    body {
+      color: rgb(0, 0, 0, .87);
+    }
+
+    .line {
+      margin-top: 30px;
+    }
+
+    .h-centered {
+      display: flex;
+      justify-content: center;
+    }
+
+    .error-message {
+      color: #E91E63;
+    }
+  </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1 class="center">ようこそ</h1>
-    <p class="center">
+  <div class="line has-text-centered">
+    <h1 class="title is-1">ようこそ</h1>
+  </div>
+  <div class="line has-text-centered">
+    <h5 class="subtitle is-5">
       JWTを用いた簡易的なシングル・サインオンのデモサイトです
-    </p>
-
-    <div class="row" style="padding-top: 10px;">
-      <div class="col s4">
-        <p class="exp-text">
-          アカウントを持っていない？
-        </p>
-        <p class="exp-text">
-          あなたの代わりにデモ用アカウントを用意しておきました！
-        </p>
-      </div>
-      <div class="col s8">
-        <table id="user-list">
-          <thead>
-            <tr>
-              <th>ログインID</th>
-              <th>パスワード</th>
-              <th>利用可能アプリ</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in users">
-              <td>[[ user.loginid ]]</td>
-              <td>[[ user.password ]]</td>
-              <td>
-                <ul class="apps">
-                  <li class="app" v-for="app in user.apps">[[ app ]]</li>
-                </ul>
-              </td>
-            </tr>
-          </tbody>
-          </tr>
-        </table>
-      </div>
-    </div>
-
-    <div class="panel center">
-      <form action="/login" method="post" class="col s12">
-        <div class="row">
-          <div class="input-field col s5">
-            <input placeholder="" id="login-id" name="loginid" type="text" value="" class="validate">
-            <label for="login-id">ログインID</label>
-          </div>
-          <div class="input-field col s4">
-            <input placeholder="" id="password" name="password" type="password" value="" class="validate">
-            <label for="password">パスワード</label>
-          </div>
-          <div class="input-field col s3">
-            <button type="submit" class="btn">ログイン</button>
-          </div>
-        </div>
-      </form>
-    </div>
-    <div class="error center">
-      {{ message }}
-    </div>
+    </h5>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-  <script>
-    fetch('api/users')
-      .then(r => r.json())
-      .then(users => {
-        new Vue({
-          el: '#user-list',
-          delimiters: ["[[", "]]"],
-          data: { users }
-        });
-      });
-  </script>
+  <div class="line h-centered">
+    <table id="user-list" class="table">
+      <thead>
+        <tr>
+          <th>ログインID</th>
+          <th>パスワード</th>
+          <th>利用可能アプリ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>{{ user.loginid }}</td>
+          <td>{{ user.password }}</td>
+          <td>
+            <ul class="apps">
+              {% for app in user.apps %}
+              <li class="app">{{ app }}</li>
+              {% endfor %}
+            </ul>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container has-text-centered">
+        <div class="column is-4 is-offset-4">
+          <div class="box">
+            <figure class="avatar">
+              <img src="https://images.unsplash.com/photo-1525414097223-503d44b5244e?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=c909c5d81c33f957303f29c90d390622&auto=format&fit=crop&w=1100&q=80">
+            </figure>
+            <form action="/login" method="post">
+              <div class="field">
+                <div class="control">
+                  <input placeholder="Login ID" name="loginid" type="text" value="" class="input is-medium">
+                </div>
+              </div>
+              <div class="field">
+                <div class="control">
+                  <input placeholder="Password" name="password" type="password" value="" class="input is-medium">
+                </div>
+              </div>
+              <button class="button is-block is-info is-large is-fullwidth">Login</button>
+            </form>
+            <div class="error-message">
+              {{ message }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </body>
 
 </html>

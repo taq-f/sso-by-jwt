@@ -19,7 +19,7 @@ JWT_SECRET = '気高く、強く、一筋に'
 # 認証サービス + それを使うアプリ2つ以上の構成を取りたいので、
 # デモのアプリケーション情報が環境変数で指定されていない場合は続行不可
 APP_ID = os.getenv("JWT_DEMO_APP_ID")
-PORT = os.getenv("JWT_DEMO_APP_PORT")
+PORT = int(os.getenv("JWT_DEMO_APP_PORT"))
 
 
 # 認証を行う必要のあるWebアプリケーションのURL
