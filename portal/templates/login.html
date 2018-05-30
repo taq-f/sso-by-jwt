@@ -8,14 +8,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css" />
   <style>
-    body {
-      color: rgb(0, 0, 0, .87);
-    }
-
-    .line {
-      margin-top: 30px;
-    }
-
     .h-centered {
       display: flex;
       justify-content: center;
@@ -24,50 +16,32 @@
     .error-message {
       color: #E91E63;
     }
+
+    .box {
+      margin-top: 5rem;
+    }
+
+    .avatar {
+      margin-top: -70px;
+      padding-bottom: 20px;
+    }
+
+    .avatar img {
+      padding: 5px;
+      background: #fff;
+      border-radius: 50%;
+      -webkit-box-shadow: 0 2px 3px rgba(10, 10, 10, .1), 0 0 0 1px rgba(10, 10, 10, .1);
+      box-shadow: 0 2px 3px rgba(10, 10, 10, .1), 0 0 0 1px rgba(10, 10, 10, .1);
+    }
   </style>
 </head>
 
 <body>
-  <div class="line has-text-centered">
-    <h1 class="title is-1">ようこそ</h1>
-  </div>
-  <div class="line has-text-centered">
-    <h5 class="subtitle is-5">
-      JWTを用いた簡易的なシングル・サインオンのデモサイトです
-    </h5>
-  </div>
-
-  <div class="line h-centered">
-    <table id="user-list" class="table">
-      <thead>
-        <tr>
-          <th>ログインID</th>
-          <th>パスワード</th>
-          <th>利用可能アプリ</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for user in users %}
-        <tr>
-          <td>{{ user.loginid }}</td>
-          <td>{{ user.password }}</td>
-          <td>
-            <ul class="apps">
-              {% for app in user.apps %}
-              <li class="app">{{ app }}</li>
-              {% endfor %}
-            </ul>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
   <section class="hero">
     <div class="hero-body">
       <div class="container has-text-centered">
         <div class="column is-4 is-offset-4">
+          <h3 class="title has-text-grey">ようこそ</h3>
           <div class="box">
             <figure class="avatar">
               <img src="https://images.unsplash.com/photo-1525414097223-503d44b5244e?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=c909c5d81c33f957303f29c90d390622&auto=format&fit=crop&w=1100&q=80">
@@ -93,6 +67,33 @@
       </div>
     </div>
   </section>
+
+  <div class="h-centered">
+    <table id="user-list" class="table">
+      <thead>
+        <tr>
+          <th>ログインID</th>
+          <th>パスワード</th>
+          <th>利用可能アプリ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>{{ user.loginid }}</td>
+          <td>{{ user.password }}</td>
+          <td>
+            <ul class="apps">
+              {% for app in user.apps %}
+              <li class="app">{{ app }}</li>
+              {% endfor %}
+            </ul>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
 </body>
 
